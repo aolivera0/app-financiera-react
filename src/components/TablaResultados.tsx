@@ -1,77 +1,89 @@
 import { Fila } from './Fila.tsx';
+import { calcularTasaParaUsar } from '../utils/calcularTasaParaUsar.ts';
+import { formatear } from '../utils/formatear.ts';
+import { calcularCuota } from '../utils/calcularCuota.ts';
+import { useEffect } from 'react';
+import { Info } from '../App.tsx';
 
 export function TablaResultados({
+  info,
+  setInfo,
+}: {
+  info: Info;
+  setInfo: (info: Info) => void;
+}) {
+  const {
     monto,
     tiempo,
     selectedPeriodicidad,
     tasaInteres,
     selectedTipoInteres,
-}: {
-    monto: number;
-    tiempo: number;
-    selectedPeriodicidad: string;
-    tasaInteres: number;
-    selectedTipoInteres: string;
-}) {
-    let tasaInteresReal: number;
+  } = info;
 
-    if (selectedPeriodicidad == 'meses') {
-        selectedTipoInteres == 'EA'
-            ? (tasaInteresReal = (1 + tasaInteres / 100) ** (1 / 12) - 1)
-            : selectedTipoInteres == 'diaria'
-                ? (tasaInteresReal = (1 + tasaInteres / 100) ** 30 - 1)
-                : (tasaInteresReal = tasaInteres / 100);
-    } else if (selectedPeriodicidad == 'dias') {
-        selectedTipoInteres == 'EA'
-            ? (tasaInteresReal = (1 + tasaInteres / 100) ** (1 / 360) - 1)
-            : selectedTipoInteres == 'mensual'
-                ? (tasaInteresReal = (1 + tasaInteres / 100) ** (1 / 30) - 1)
-                : (tasaInteresReal = tasaInteres / 100);
-    } else {
-        selectedTipoInteres == 'mensual'
-            ? (tasaInteresReal = (1 + tasaInteres / 100 / 12) ** 11)
-            : selectedTipoInteres == 'diaria'
-                ? (tasaInteresReal = (1 + tasaInteres / 100 / 360) ** 359)
-                : (tasaInteresReal = tasaInteres / 100);
-    }
+  const tasaInteresReal = calcularTasaParaUsar(
+    selectedPeriodicidad,
+    selectedTipoInteres,
+    tasaInteres
+  );
 
-    const cuota =
-        (monto * tasaInteresReal) / (1 - (1 + tasaInteresReal) ** -tiempo);
-    let saldoInicial = monto;
-    const filas = [];
+  const cuota = calcularCuota(monto, tasaInteresReal, tiempo);
 
-    for (let i = 0; i < tiempo; i++) {
-        const interesPeriodo = saldoInicial * tasaInteresReal;
-        const aporteCapitalPeriodo = cuota - interesPeriodo;
+  let saldoInicial = monto;
+  let totalAportesCapital = 0;
+  let totalIntereses = 0;
+  const filas = [];
 
-        filas.push(
-            <Fila
-                key={i}
-                periodo={i + 1}
-                cuota={cuota}
-                saldoInicial={saldoInicial}
-                intereses={interesPeriodo}
-                abonoCapital={aporteCapitalPeriodo}
-                saldoFinal={saldoInicial - aporteCapitalPeriodo}
-            />
-        );
+  for (let i = 0; i < tiempo; i++) {
+    const interesPeriodo = saldoInicial * tasaInteresReal;
+    const aporteCapitalPeriodo = cuota - interesPeriodo;
 
-        saldoInicial = saldoInicial - aporteCapitalPeriodo;
-    }
-
-    return (
-        <table>
-            <thead>
-                <th>Periodo</th>
-                <th>Saldo inicial</th>
-                <th>Cuota</th>
-                <th>Aporte a capital</th>
-                <th>Intereses</th>
-                <th>Saldo final</th>
-            </thead>
-
-            <tbody>{filas}</tbody>
-            <tfoot></tfoot>
-        </table>
+    filas.push(
+      <Fila
+        key={i}
+        periodo={i + 1}
+        cuota={cuota}
+        saldoInicial={saldoInicial}
+        intereses={interesPeriodo}
+        abonoCapital={aporteCapitalPeriodo}
+        saldoFinal={saldoInicial - aporteCapitalPeriodo}
+      />
     );
+
+    saldoInicial = saldoInicial - aporteCapitalPeriodo;
+    totalAportesCapital += aporteCapitalPeriodo;
+    totalIntereses += interesPeriodo;
+  }
+
+  useEffect(() => {
+    setInfo({
+      ...info,
+      totalAportesCapital: totalAportesCapital,
+      totalIntereses: totalIntereses,
+    });
+  }, [info]);
+
+  return (
+    <table>
+      <thead>
+        <th>Periodo</th>
+        <th>Saldo inicial</th>
+        <th>Cuota</th>
+        <th>Aporte a capital</th>
+        <th>Intereses</th>
+        <th>Saldo final</th>
+      </thead>
+
+      <tbody>{filas}</tbody>
+      <tfoot>
+        <tr>
+          <td>-</td>
+          <td>-</td>
+          <td>{formatear(info.totalAportesCapital + info.totalIntereses)}</td>
+          <td>{formatear(info.totalAportesCapital)}</td>
+          <td>{formatear(info.totalIntereses)}</td>
+          <td>-</td>
+        </tr>
+      </tfoot>
+    </table>
+  );
 }

@@ -2,37 +2,34 @@ import { useState } from 'react';
 import './App.css';
 import { Form } from './components/Form.tsx';
 import { TablaResultados } from './components/TablaResultados.tsx';
+import { Totales } from './components/Totales.tsx';
+
+export type Info = {
+  monto: number;
+  tiempo: number;
+  tasaInteres: number;
+  selectedPeriodicidad: string;
+  selectedTipoInteres: string;
+  totalAportesCapital: number;
+  totalIntereses: number;
+};
 
 function App() {
-  const [monto, setMonto] = useState(0);
-  const [tiempo, setTiempo] = useState(0);
-  const [tasaInteres, setTasaInteres] = useState(0);
-  const [selectedPeriodicidad, setSelectedPeriodicidad] = useState('meses');
-  const [selectedTipoInteres, setSelectedTipoInteres] = useState('mensual');
-
+  const [info, setInfo] = useState<Info>({
+    monto: 0,
+    tiempo: 0,
+    tasaInteres: 0,
+    selectedPeriodicidad: 'meses',
+    selectedTipoInteres: 'mensual',
+    totalAportesCapital: 0,
+    totalIntereses: 0,
+  });
   return (
     <>
       <h1>App Financiera</h1>
-      <Form
-        monto={monto}
-        setMonto={setMonto}
-        tiempo={tiempo}
-        setTiempo={setTiempo}
-        tasaInteres={tasaInteres}
-        setTasaInteres={setTasaInteres}
-        selectedPeriodicidad={selectedPeriodicidad}
-        setSelectedPeriodicidad={setSelectedPeriodicidad}
-        selectedTipoInteres={selectedTipoInteres}
-        setSelectedTipoInteres={setSelectedTipoInteres}
-      />
-
-      <TablaResultados
-        monto={monto}
-        tiempo={tiempo}
-        tasaInteres={tasaInteres}
-        selectedPeriodicidad={selectedPeriodicidad}
-        selectedTipoInteres={selectedTipoInteres}
-      />
+      <Form info={info} setInfo={setInfo} />
+      <TablaResultados info={info} setInfo={setInfo} />
+      <Totales info={info} />
     </>
   );
 }

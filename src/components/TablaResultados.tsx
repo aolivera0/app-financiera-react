@@ -3,14 +3,16 @@ import { calcularTasaParaUsar } from '../utils/calcularTasaParaUsar.ts';
 import { formatear } from '../utils/formatear.ts';
 import { calcularCuota } from '../utils/calcularCuota.ts';
 import { useEffect } from 'react';
-import { Info } from '../App.tsx';
+import { Info, Totales } from '../interfaces.ts'
 
 export function TablaResultados({
   info,
-  setInfo,
+  totales,
+  setTotales,
 }: {
   info: Info;
-  setInfo: (info: Info) => void;
+  totales: Totales;
+  setTotales: (totales: Totales) => void;
 }) {
   const {
     monto,
@@ -21,19 +23,19 @@ export function TablaResultados({
   } = info;
 
   const tasaInteresReal = calcularTasaParaUsar(
-    selectedPeriodicidad,
     selectedTipoInteres,
     tasaInteres
   );
 
-  const cuota = calcularCuota(monto, tasaInteresReal, tiempo);
+  let periodos = selectedPeriodicidad == 'años' ? tiempo * 12 : tiempo;
+  const cuota = calcularCuota(monto, tasaInteresReal, periodos);
 
   let saldoInicial = monto;
   let totalAportesCapital = 0;
   let totalIntereses = 0;
   const filas = [];
 
-  for (let i = 0; i < tiempo; i++) {
+  for (let i = 0; i < periodos; i++) {
     const interesPeriodo = saldoInicial * tasaInteresReal;
     const aporteCapitalPeriodo = cuota - interesPeriodo;
 
@@ -55,35 +57,40 @@ export function TablaResultados({
   }
 
   useEffect(() => {
-    setInfo({
-      ...info,
+    setTotales({
+      ...totales,
       totalAportesCapital: totalAportesCapital,
       totalIntereses: totalIntereses,
     });
   }, [info]);
 
   return (
-    <table>
-      <thead>
-        <th>Periodo</th>
-        <th>Saldo inicial</th>
-        <th>Cuota</th>
-        <th>Aporte a capital</th>
-        <th>Intereses</th>
-        <th>Saldo final</th>
-      </thead>
+    <section className="wrapper">
+      <h3>Tabla de resultados</h3>
+      <table className="tabla-resultados">
+        <thead>
+          <th>Periodo</th>
+          <th>Saldo inicial</th>
+          <th>Cuota</th>
+          <th>Aporte a capital</th>
+          <th>Intereses</th>
+          <th>Saldo final</th>
+        </thead>
 
-      <tbody>{filas}</tbody>
-      <tfoot>
-        <tr>
-          <td>-</td>
-          <td>-</td>
-          <td>{formatear(info.totalAportesCapital + info.totalIntereses)}</td>
-          <td>{formatear(info.totalAportesCapital)}</td>
-          <td>{formatear(info.totalIntereses)}</td>
-          <td>-</td>
-        </tr>
-      </tfoot>
-    </table>
+        <tbody>{filas}</tbody>
+        <tfoot>
+          <tr>
+            <td>-</td>
+            <td>-</td>
+            <td>
+              {formatear(totales.totalAportesCapital + totales.totalIntereses)}
+            </td>
+            <td>{formatear(totales.totalAportesCapital)}</td>
+            <td>{formatear(totales.totalIntereses)}</td>
+            <td>-</td>
+          </tr>
+        </tfoot>
+      </table>
+    </section>
   );
 }

@@ -1,37 +1,19 @@
-import { useState } from 'react';
-import './App.css';
-import { Form } from './components/Form.tsx';
-import { TablaResultados } from './components/TablaResultados.tsx';
-import { Totales } from './components/Totales.tsx';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Layout } from './pages/Layout.tsx';
+import { Credito } from './pages/Credito.tsx';
 
-export type Info = {
-  monto: number;
-  tiempo: number;
-  tasaInteres: number;
-  selectedPeriodicidad: string;
-  selectedTipoInteres: string;
-  totalAportesCapital: number;
-  totalIntereses: number;
-};
-
-function App() {
-  const [info, setInfo] = useState<Info>({
-    monto: 0,
-    tiempo: 0,
-    tasaInteres: 0,
-    selectedPeriodicidad: 'meses',
-    selectedTipoInteres: 'mensual',
-    totalAportesCapital: 0,
-    totalIntereses: 0,
-  });
+export default function App() {
   return (
-    <>
-      <h1>App Financiera</h1>
-      <Form info={info} setInfo={setInfo} />
-      <TablaResultados info={info} setInfo={setInfo} />
-      <Totales info={info} />
-    </>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          {/* <Route index element={<Home />} /> */}
+          <Route path="credito" element={<Credito />} />
+          {/* <Route path="contact" element={<Contact />} />
+          <Route path="*" element={<NoPage />} /> */}
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
-
-export default App;
